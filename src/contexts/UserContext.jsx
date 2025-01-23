@@ -1,30 +1,37 @@
-// src/contexts/UserContext.jsx
-import React, { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, useCallback } from "react";
 import { getUser } from "../api/users.api";
+
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // User is null if not logged in
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const _getUser = async () => {
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem("auth");
+  }, []);
+
+  const _getUser = useCallback(async () => {
     const token = localStorage.getItem("auth");
     if (token) {
-      const user = await getUser();
-      setUser(user);
+      try {
+        const user = await getUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+        logout();
+      }
     }
-  };
+    setLoading(false);
+  }, [logout]);
 
   useEffect(() => {
     _getUser();
-  }, []);
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("auth");
-  };
+  }, [_getUser]);
 
   return (
-    <UserContext.Provider value={{ user, logout }}>
+    <UserContext.Provider value={{ user, logout, loading }}>
       {children}
     </UserContext.Provider>
   );

@@ -20,14 +20,14 @@ import AddIcon from '@mui/icons-material/Add';
 import { getCustomers } from '../api/customers.api';
 
 
-const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger }) => {
+const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, setMessage }) => {
     const [searchField, setSearchField] = useState('name');
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [customers, setCustomers] = useState([]);
     const [totalCustomers, setTotalCustomers] = useState(0);
-    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
         try {
             setLoading(true);
@@ -42,10 +42,11 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger }) => {
             });
         } catch (error) {
             console.error("Error fetching customers:", error);
+            setMessage({ type: 'error', text: 'حدث خطأ أثناء جلب البيانات' });
         } finally {
             setLoading(false);
         }
-    }, [page, rowsPerPage, searchField, searchQuery, refreshTrigger]);
+    }, [page, rowsPerPage, searchField, searchQuery, refreshTrigger, setLoading]);
 
     const searchFields = [
         { value: 'name', label: 'الاسم' },

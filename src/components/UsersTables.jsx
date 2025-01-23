@@ -18,21 +18,20 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import { getUsers } from '../api/users.api';
+import { getAccounts } from '../api/users.api';
 
-const UsersTable = ({ onViewDetails, onAddNew, refreshTrigger }) => {
+const UsersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, setMessage }) => {
     const [searchField, setSearchField] = useState('name');
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [users, setUsers] = useState([]);
     const [totalUsers, setTotalUsers] = useState(0);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         try {
             setLoading(true);
-            getUsers({ page: page + 1, rowsPerPage, searchField, searchQuery }).then((data) => {
+            getAccounts({ page: page + 1, rowsPerPage, searchField, searchQuery }).then((data) => {
                 setUsers(data.users);
                 setTotalUsers(data.totalUsers);
             });
@@ -40,8 +39,9 @@ const UsersTable = ({ onViewDetails, onAddNew, refreshTrigger }) => {
             console.error("Error fetching users:", error);
         } finally {
             setLoading(false);
+            setMessage({ type: 'error', text: 'حدث خطأ أثناء جلب البيانات' });
         }
-    }, [page, rowsPerPage, searchField, searchQuery, refreshTrigger]);
+    }, [page, rowsPerPage, searchField, searchQuery, refreshTrigger, setLoading]);
 
 
     const searchFields = [

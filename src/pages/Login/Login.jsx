@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { TextField, Button, Box, Typography } from '@mui/material';
-import { login } from '../../api/customers.api';
+import { login } from '../../api/users.api';
 import { useNavigate } from 'react-router-dom';
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();

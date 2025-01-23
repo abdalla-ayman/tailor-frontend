@@ -10,6 +10,9 @@ import {
     Avatar,
     Divider,
     Container,
+    Snackbar,
+    Alert,
+    CircularProgress,
 } from '@mui/material';
 import {
     Edit as EditIcon,
@@ -26,10 +29,12 @@ const Profile = () => {
     const { user } = useUser();
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' }); // For success/error messages
     const [formData, setFormData] = useState({
-        name: user.name,
-        username: user.username,
-        id: user.id,
+        name: user ? user.name : '',
+        username: user ? user.username : '',
+        id: user ? user.id : '',
+        isSuperAdmin: user ? user.isSuperAdmin : false,
     });
     const navigate = useNavigate();
 
@@ -43,11 +48,12 @@ const Profile = () => {
         try {
             setLoading(true);
             await updateAccount(formData);
+            setMessage({ type: 'success', text: 'تم تحديث البيانات بنجاح' });
             setLoading(false);
-            //TODO: show success message
             handleClose();
         } catch (error) {
             console.error("Error updating account:", error);
+            setMessage({ type: 'error', text: 'فشل تحديث البيانات' });
             setLoading(false);
         }
     };
@@ -56,12 +62,18 @@ const Profile = () => {
         try {
             setLoading(true);
             await deleteAccount();
+            setMessage({ type: 'success', text: 'تم حذف الحساب بنجاح' });
             setLoading(false);
             navigate('/login');
         } catch (error) {
             console.error("Error deleting account:", error);
+            setMessage({ type: 'error', text: 'فشل حذف الحساب' });
             setLoading(false);
         }
+    };
+
+    const handleCloseMessage = () => {
+        setMessage({ type: '', text: '' }); // Clear the message
     };
 
     return (
@@ -112,6 +124,12 @@ const Profile = () => {
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <Box>
                                 <Typography variant="subtitle2" color="text.secondary">
+                                    المعرف
+                                </Typography>
+                                <Typography variant="body1">{formData.id}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
                                     الاسم
                                 </Typography>
                                 <Typography variant="body1">{formData.name}</Typography>
@@ -124,11 +142,14 @@ const Profile = () => {
                                 <Typography variant="body1">{formData.username}</Typography>
                             </Box>
 
+
                             <Box>
                                 <Typography variant="subtitle2" color="text.secondary">
-                                    المعرف
+                                    صلاحية المشرف العام
                                 </Typography>
-                                <Typography variant="body1">{formData.id}</Typography>
+                                <Typography variant="subtitle2">
+                                    {formData.isSuperAdmin ? 'نعم' : 'لا'}
+                                </Typography>
                             </Box>
                         </Box>
 
@@ -141,8 +162,9 @@ const Profile = () => {
                                 startIcon={<EditIcon />}
                                 onClick={handleOpen}
                                 sx={{ minWidth: 135 }}
+                                disabled={loading} // Disable button while loading
                             >
-                                تعديل البيانات
+                                {loading ? <CircularProgress size={24} /> : 'تعديل البيانات'}
                             </Button>
                             <Button
                                 variant="outlined"
@@ -150,8 +172,9 @@ const Profile = () => {
                                 startIcon={<DeleteIcon />}
                                 onClick={handleDelete}
                                 sx={{ minWidth: 135 }}
+                                disabled={loading} // Disable button while loading
                             >
-                                حذف الحساب
+                                {loading ? <CircularProgress size={24} /> : 'حذف الحساب'}
                             </Button>
                         </Box>
 
@@ -217,10 +240,10 @@ const Profile = () => {
                                         }}
                                     />
                                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-start', mt: 2 }}>
-                                        <Button variant="contained" onClick={handleSubmit}>
-                                            حفظ التغييرات
+                                        <Button variant="contained" onClick={handleSubmit} disabled={loading}>
+                                            {loading ? <CircularProgress size={24} /> : 'حفظ التغييرات'}
                                         </Button>
-                                        <Button variant="text" onClick={handleClose}>
+                                        <Button variant="text" onClick={handleClose} disabled={loading}>
                                             إلغاء
                                         </Button>
                                     </Box>
@@ -230,6 +253,22 @@ const Profile = () => {
                     </Box>
                 </Paper>
             </Container>
+
+            {/* Snackbar for Success/Error Messages */}
+            <Snackbar
+                open={!!message.text}
+                autoHideDuration={6000}
+                onClose={handleCloseMessage}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={handleCloseMessage}
+                    severity={message.type}
+                    sx={{ width: '100%' }}
+                >
+                    {message.text}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
