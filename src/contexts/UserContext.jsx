@@ -6,6 +6,7 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const logout = useCallback(() => {
     setUser(null);
@@ -24,14 +25,14 @@ export const UserProvider = ({ children }) => {
       }
     }
     setLoading(false);
-  }, [logout]);
+  }, [logout, refreshTrigger]);
 
   useEffect(() => {
     _getUser();
   }, [_getUser]);
 
   return (
-    <UserContext.Provider value={{ user, logout, loading }}>
+    <UserContext.Provider value={{ user, logout, loading, setRefreshTrigger }}>
       {children}
     </UserContext.Provider>
   );

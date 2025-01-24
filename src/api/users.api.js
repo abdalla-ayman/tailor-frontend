@@ -13,7 +13,7 @@ export const getAccounts = async (params) => {
 
 export const getUser = async () => {
   try {
-    const response = await apiClient.get("/user");
+    const response = await apiClient.get("/account");
     return response.data;
   } catch (error) {
     console.error("Error fetching user:", error);

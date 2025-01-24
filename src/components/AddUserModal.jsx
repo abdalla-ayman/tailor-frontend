@@ -9,7 +9,8 @@ import {
     Stack,
     Divider,
     FormControlLabel,
-    Switch
+    Switch,
+    FormHelperText
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
@@ -19,21 +20,68 @@ const AddUserModal = ({ open, onClose, onSave }) => {
         username: '',
         name: '',
         password: '',
-        isSuperAdmin: false // Added isSuperAdmin flag
+        isSuperAdmin: false
+    });
+
+    const [errors, setErrors] = useState({
+        username: '',
+        name: '',
+        password: ''
     });
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        // Handle switch (checkbox) differently from text inputs
+
+        // Clear errors when the user starts typing
+        if (errors[name]) {
+            setErrors({
+                ...errors,
+                [name]: ''
+            });
+        }
+
         setNewUser({
             ...newUser,
             [name]: type === 'checkbox' ? checked : value
         });
     };
 
-    const handleSave = () => {
-        onSave(newUser);
+    const validateForm = () => {
+        const newErrors = { username: '', name: '', password: '' };
+        let isValid = true;
+
+        // Validate username
+        if (!newUser.username.trim()) {
+            newErrors.username = 'اسم المستخدم مطلوب';
+            isValid = false;
+        }
+
+        // Validate name
+        if (!newUser.name.trim()) {
+            newErrors.name = 'الاسم مطلوب';
+            isValid = false;
+        }
+
+        // Validate password
+        if (!newUser.password.trim()) {
+            newErrors.password = 'كلمة المرور مطلوبة';
+            isValid = false;
+        } else if (newUser.password.length < 6) {
+            newErrors.password = 'كلمة المرور يجب أن تكون على الأقل 6 أحرف';
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const handleSave = async () => {
+        if (!validateForm()) return;
+
+
+        await onSave(newUser);
         onClose();
+
     };
 
     const modalStyle = {
@@ -108,6 +156,8 @@ const AddUserModal = ({ open, onClose, onSave }) => {
                             onChange={handleChange}
                             fullWidth
                             size="small"
+                            error={!!errors.username}
+                            helperText={errors.username}
                             InputProps={{
                                 sx: { textAlign: 'right' }
                             }}
@@ -119,6 +169,8 @@ const AddUserModal = ({ open, onClose, onSave }) => {
                             onChange={handleChange}
                             fullWidth
                             size="small"
+                            error={!!errors.name}
+                            helperText={errors.name}
                             InputProps={{
                                 sx: { textAlign: 'right' }
                             }}
@@ -131,8 +183,13 @@ const AddUserModal = ({ open, onClose, onSave }) => {
                             onChange={handleChange}
                             fullWidth
                             size="small"
+                            error={!!errors.password}
+                            helperText={errors.password}
                             InputProps={{
-                                sx: { textAlign: 'right' }
+                                sx: { textAlign: 'right' },
+                                inputProps: {
+                                    minLength: 6 // Minimum length constraint
+                                }
                             }}
                         />
                         {/* Switch for Super Admin */}

@@ -18,6 +18,7 @@ import {
     Edit as EditIcon,
     Delete as DeleteIcon,
     Person as PersonIcon,
+    Logout as LogoutIcon, // Import the Logout icon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -26,14 +27,14 @@ import { updateAccount, deleteAccount } from '../../api/users.api';
 import { useUser } from '../../contexts/UserContext';
 
 const Profile = () => {
-    const { user } = useUser();
+    const { user, logout } = useUser(); // Destructure the logout function
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' }); // For success/error messages
     const [formData, setFormData] = useState({
         name: user ? user.name : '',
         username: user ? user.username : '',
-        id: user ? user.id : '',
+        id: user ? user._id : '',
         isSuperAdmin: user ? user.isSuperAdmin : false,
     });
     const navigate = useNavigate();
@@ -47,7 +48,8 @@ const Profile = () => {
     const handleSubmit = async () => {
         try {
             setLoading(true);
-            await updateAccount(formData);
+            const { id, isSuperAdmin, ...accountDataWithoutId } = formData
+            await updateAccount(id, accountDataWithoutId);
             setMessage({ type: 'success', text: 'تم تحديث البيانات بنجاح' });
             setLoading(false);
             handleClose();
@@ -61,7 +63,7 @@ const Profile = () => {
     const handleDelete = async () => {
         try {
             setLoading(true);
-            await deleteAccount();
+            await deleteAccount(formData.id);
             setMessage({ type: 'success', text: 'تم حذف الحساب بنجاح' });
             setLoading(false);
             navigate('/login');
@@ -74,6 +76,11 @@ const Profile = () => {
 
     const handleCloseMessage = () => {
         setMessage({ type: '', text: '' }); // Clear the message
+    };
+
+    const handleLogout = () => {
+        logout(); // Call the logout function
+        navigate('/login'); // Redirect to the login page
     };
 
     return (
@@ -156,7 +163,7 @@ const Profile = () => {
                         <Divider sx={{ my: 3 }} />
 
                         {/* Action Buttons */}
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-start' }}>
+                        <Box sx={{ display: 'flex', flexWrap: "wrap", gap: 2, justifyContent: 'flex-start' }}>
                             <Button
                                 variant="contained"
                                 startIcon={<EditIcon />}
@@ -175,6 +182,17 @@ const Profile = () => {
                                 disabled={loading} // Disable button while loading
                             >
                                 {loading ? <CircularProgress size={24} /> : 'حذف الحساب'}
+                            </Button>
+                            {/* Logout Button */}
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                startIcon={<LogoutIcon />}
+                                onClick={handleLogout}
+                                sx={{ minWidth: 135 }}
+                                disabled={loading} // Disable button while loading
+                            >
+                                تسجيل الخروج
                             </Button>
                         </Box>
 

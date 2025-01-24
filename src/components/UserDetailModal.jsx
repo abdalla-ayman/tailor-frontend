@@ -7,7 +7,8 @@ import {
     Paper,
     IconButton,
     Stack,
-    Divider
+    Divider,
+    FormHelperText
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -17,17 +18,56 @@ import CloseIcon from '@mui/icons-material/Close';
 const UserDetailModal = ({ open, onClose, user, onDelete, onSave }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [userData, setUserData] = useState(user);
+    const [errors, setErrors] = useState({
+        username: '',
+        password: ''
+    });
 
     const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        // Clear errors when the user starts typing
+        if (errors[name]) {
+            setErrors({
+                ...errors,
+                [name]: ''
+            });
+        }
+
         setUserData({
             ...userData,
-            [e.target.name]: e.target.value
+            [name]: value
         });
     };
 
-    const handleSave = () => {
-        onSave(userData);
+    const validateForm = () => {
+        const newErrors = { username: '', password: '' };
+        let isValid = true;
+
+        // Validate username
+        if (!userData.username.trim()) {
+            newErrors.username = 'اسم المستخدم مطلوب';
+            isValid = false;
+        }
+
+        // Validate password
+        if (userData.password && userData.password.length < 6) {
+            newErrors.password = 'كلمة المرور يجب أن تكون على الأقل 6 أحرف';
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const handleSave = async () => {
+        if (!validateForm()) return;
+
+
+        const { _id, ...userDataWithoutId } = userData;
+        await onSave(_id, userDataWithoutId);
         setIsEditing(false);
+
     };
 
     const modalStyle = {
@@ -82,7 +122,7 @@ const UserDetailModal = ({ open, onClose, user, onDelete, onSave }) => {
                                     </IconButton>
                                     <IconButton
                                         color="error"
-                                        onClick={() => onDelete(userData.id)}
+                                        onClick={() => onDelete(userData._id)}
                                         size="small"
                                     >
                                         <DeleteIcon fontSize="small" />
@@ -119,7 +159,7 @@ const UserDetailModal = ({ open, onClose, user, onDelete, onSave }) => {
                         <TextField
                             label="المعرف"
                             name="id"
-                            value={userData.id}
+                            value={userData._id}
                             disabled
                             fullWidth
                             size="small"
@@ -135,6 +175,8 @@ const UserDetailModal = ({ open, onClose, user, onDelete, onSave }) => {
                             disabled={!isEditing}
                             fullWidth
                             size="small"
+                            error={!!errors.username}
+                            helperText={errors.username}
                             InputProps={{
                                 sx: { textAlign: 'right' }
                             }}
@@ -160,8 +202,13 @@ const UserDetailModal = ({ open, onClose, user, onDelete, onSave }) => {
                             disabled={!isEditing}
                             fullWidth
                             size="small"
+                            error={!!errors.password}
+                            helperText={errors.password}
                             InputProps={{
-                                sx: { textAlign: 'right' }
+                                sx: { textAlign: 'right' },
+                                inputProps: {
+                                    minLength: 6 // Minimum length constraint
+                                }
                             }}
                         />
                         <TextField

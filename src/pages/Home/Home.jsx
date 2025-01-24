@@ -1,5 +1,18 @@
 import { useState } from 'react';
-import { Box, Tabs, Tab, Snackbar, Alert } from '@mui/material';
+import {
+    Box,
+    Tabs,
+    Tab,
+    Snackbar,
+    Alert,
+    Container,
+    Paper,
+    CircularProgress,
+    useMediaQuery,
+    IconButton,
+    Typography,
+} from '@mui/material';
+import { Menu as MenuIcon } from '@mui/icons-material'; // Icon for mobile menu
 import Navbar from '../../components/Navbar';
 import CustomersTable from '../../components/CustomersTable';
 import UsersTable from '../../components/UsersTables';
@@ -9,6 +22,7 @@ import AddUserModal from '../../components/AddUserModal';
 import AddCustomerModal from '../../components/AddCustomerModal';
 import { createCustomer, deleteCustomer, updateCustomer } from '../../api/customers.api';
 import { createAccount, deleteAccount, updateAccount } from '../../api/users.api';
+import { useUser } from '../../contexts/UserContext';
 
 const Home = () => {
     const [activeTab, setActiveTab] = useState(0);
@@ -20,7 +34,9 @@ const Home = () => {
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
     const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const [message, setMessage] = useState({ type: '', text: '' }); // For success/error messages
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const isMobile = useMediaQuery('(max-width:600px)'); // Check for mobile screen size
+    const { user } = useUser();
 
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
@@ -36,25 +52,28 @@ const Home = () => {
         setIsCustomerModalOpen(true);
     };
 
-    const handleUserSave = async (updatedUser) => {
+    const handleUserSave = async (id, updatedUser) => {
         try {
             setLoading(true);
-            await updateAccount(updatedUser);
+            await updateAccount(id, updatedUser);
             setMessage({ type: 'success', text: 'تم تحديث المستخدم بنجاح' });
             setIsUserModalOpen(false);
             setLoading(false);
             refreshUsers();
         } catch (error) {
-            console.error("Error updating user:", error);
-            setMessage({ type: 'error', text: 'فشل تحديث المستخدم' });
-            setLoading(false);
+            if (error.response?.data?.error?.code === 11000) {
+                setMessage({ type: 'error', text: 'اسم المستخدم موجود مسبقاً' });
+            } else {
+                setMessage({ type: 'error', text: 'فشل تحديث المستخدم' });
+            }
         }
+        setLoading(false);
     };
 
-    const handleCustomerSave = async (updatedCustomer) => {
+    const handleCustomerSave = async (id, updatedCustomer) => {
         try {
             setLoading(true);
-            await updateCustomer(updatedCustomer);
+            await updateCustomer(id, updatedCustomer);
             setMessage({ type: 'success', text: 'تم تحديث العميل بنجاح' });
             setIsCustomerModalOpen(false);
             setLoading(false);
@@ -114,7 +133,11 @@ const Home = () => {
             refreshUsers();
         } catch (error) {
             console.error("Error adding user:", error);
-            setMessage({ type: 'error', text: 'فشل إضافة المستخدم' });
+            if (error.response?.data?.error?.code === 11000) {
+                setMessage({ type: 'error', text: 'اسم المستخدم موجود مسبقاً' });
+            } else {
+                setMessage({ type: 'error', text: 'فشل إضافة المستخدم' });
+            }
             setLoading(false);
         }
     };
@@ -147,33 +170,50 @@ const Home = () => {
     };
 
     return (
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
             <Navbar />
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={activeTab} onChange={handleTabChange}>
-                    <Tab label="العملاء" />
-                    <Tab label="المستخدمين" />
-                </Tabs>
-            </Box>
-            <Box sx={{ mt: 2 }}>
-                {activeTab === 0 ? (
-                    <CustomersTable
-                        onViewDetails={handleCustomerDetails}
-                        onAddNew={handleCustomerAddNew}
-                        setLoading={setLoading}
-                        setMessage={setMessage}
-                        refreshTrigger={refreshTrigger}
-                    />
-                ) : (
-                    <UsersTable
-                        onViewDetails={handleUserDetails}
-                        onAddNew={handleUserAddNew}
-                        setLoading={setLoading}
-                        setMessage={setMessage}
-                        refreshTrigger={refreshTrigger}
-                    />
-                )}
-            </Box>
+            <Container maxWidth="lg" sx={{ mt: 2, p: isMobile ? 1 : 3 }}>
+                <Paper elevation={3} sx={{ p: isMobile ? 1 : 3, borderRadius: 2 }}>
+                    {/* Tabs Section */}
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                        <Tabs
+                            value={activeTab}
+                            onChange={handleTabChange}
+                            variant={isMobile ? 'scrollable' : 'standard'}
+                            scrollButtons="auto"
+                            allowScrollButtonsMobile
+                        >
+                            <Tab label="العملاء" />
+                            {user.isSuperAdmin && <Tab label="المستخدمين" />}
+                        </Tabs>
+                    </Box>
+
+                    {/* Content Section */}
+                    <Box sx={{ mt: 2 }}>
+                        {activeTab === 0 ? (
+                            <CustomersTable
+                                onViewDetails={handleCustomerDetails}
+                                onAddNew={handleCustomerAddNew}
+                                setLoading={setLoading}
+                                setMessage={setMessage}
+                                refreshTrigger={refreshTrigger}
+                                isMobile={isMobile}
+                            />
+                        ) : (
+                            <UsersTable
+                                onViewDetails={handleUserDetails}
+                                onAddNew={handleUserAddNew}
+                                setLoading={setLoading}
+                                setMessage={setMessage}
+                                refreshTrigger={refreshTrigger}
+                                isMobile={isMobile}
+                            />
+                        )}
+                    </Box>
+                </Paper>
+            </Container>
+
+            {/* Modals */}
             {selectedUser && (
                 <UserDetailModal
                     open={isUserModalOpen}
@@ -182,6 +222,7 @@ const Home = () => {
                     onSave={handleUserSave}
                     onDelete={handleUserDelete}
                     loading={loading}
+                    isMobile={isMobile}
                 />
             )}
 
@@ -193,6 +234,7 @@ const Home = () => {
                     onSave={handleCustomerSave}
                     onDelete={handleCustomerDelete}
                     loading={loading}
+                    isMobile={isMobile}
                 />
             )}
 
@@ -201,6 +243,7 @@ const Home = () => {
                 onClose={() => setIsAddUserModalOpen(false)}
                 onSave={handleAddUserSave}
                 loading={loading}
+                isMobile={isMobile}
             />
 
             <AddCustomerModal
@@ -208,6 +251,7 @@ const Home = () => {
                 onClose={() => setIsAddCustomerModalOpen(false)}
                 onSave={handleAddCustomerSave}
                 loading={loading}
+                isMobile={isMobile}
             />
 
             {/* Snackbar for Messages */}

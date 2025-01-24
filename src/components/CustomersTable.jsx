@@ -13,12 +13,14 @@ import {
     Button,
     InputAdornment,
     Stack,
-    TablePagination
+    TablePagination,
+    CircularProgress,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import { getCustomers } from '../api/customers.api';
-
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import { getCustomers, exportCustomersToExcel, importCustomersFromExcel } from '../api/customers.api';
+import { useUser } from '../contexts/UserContext';
 
 const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, setMessage }) => {
     const [searchField, setSearchField] = useState('name');
@@ -27,6 +29,9 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [customers, setCustomers] = useState([]);
     const [totalCustomers, setTotalCustomers] = useState(0);
+    const [isExporting, setIsExporting] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
+    const { user } = useUser();
 
     useEffect(() => {
         try {
@@ -63,10 +68,65 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
         setPage(0);
     };
 
+    // Format phone numbers with each number on a new line
+    const formatPhoneNumbersWithNewLine = (phones) => {
+        return phones.map((phone, index) => (
+            <div key={index}>{phone}</div>
+        ));
+    };
+
+    // Handle Export to Excel
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            const response = await exportCustomersToExcel();
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `customers_${new Date().toISOString()}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setMessage({ type: 'success', text: 'تم تصدير البيانات بنجاح' });
+        } catch (error) {
+            console.error("Error exporting customers:", error);
+            setMessage({ type: 'error', text: 'فشل تصدير البيانات' });
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    // Handle Import from Excel
+    const handleImport = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            setIsImporting(true);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await importCustomersFromExcel(formData);
+            setMessage({ type: 'success', text: `تم استيراد ${response.data.imported} عميل بنجاح` });
+            setRefreshTrigger((prev) => prev + 1); // Refresh the table
+        } catch (error) {
+            console.error("Error importing customers:", error);
+            if (error.response?.data?.errors) {
+                const errors = error.response.data.errors.map((err) => `الصف ${err.row}: ${err.error}`).join('\n');
+                setMessage({ type: 'error', text: `خطأ في الاستيراد:\n${errors}` });
+            } else {
+                setMessage({ type: 'error', text: 'فشل استيراد البيانات' });
+            }
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
     return (
         <Box sx={{ width: '100%', direction: 'rtl' }}>
-            {/* Add Customer Button */}
-            <Box sx={{ mb: 2 }}>
+            {/* Action Buttons */}
+            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
                 <Button
                     variant="contained"
                     color="primary"
@@ -76,6 +136,38 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
                 >
                     إضافة عميل جديد
                 </Button>
+                {
+                    user.isSuperAdmin && (
+                        <>
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                startIcon={<ImportExportIcon />}
+                                onClick={handleExport}
+                                size="small"
+                                disabled={isExporting}
+                            >
+                                {isExporting ? <CircularProgress size={20} /> : 'تصدير إلى Excel'}
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                component="label"
+                                startIcon={<ImportExportIcon />}
+                                size="small"
+                                disabled={isImporting}
+                            >
+                                {isImporting ? <CircularProgress size={20} /> : 'استيراد من Excel'}
+                                <input
+                                    type="file"
+                                    hidden
+                                    accept=".xlsx, .xls"
+                                    onChange={handleImport}
+                                />
+                            </Button>
+                        </>)
+                }
+
             </Box>
 
             {/* Search Controls */}
@@ -130,10 +222,12 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
                     </TableHead>
                     <TableBody>
                         {customers.map((customer) => (
-                            <TableRow key={customer.id}>
-                                <TableCell align="right">{customer.id}</TableCell>
+                            <TableRow key={customer._id}>
+                                <TableCell align="right">{customer._id}</TableCell>
                                 <TableCell align="right">{customer.name}</TableCell>
-                                <TableCell align="right">{customer.phone}</TableCell>
+                                <TableCell align="right">
+                                    {formatPhoneNumbersWithNewLine(customer.phone)}
+                                </TableCell>
                                 <TableCell align="right">{customer.residence}</TableCell>
                                 <TableCell align="center">
                                     <Button

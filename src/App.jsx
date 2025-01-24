@@ -6,6 +6,8 @@ import Login from './pages/Login/Login.jsx';
 import Home from './pages/Home/Home.jsx';
 import Profile from './pages/Profile/Profile.jsx';
 import { UserProvider } from './contexts/UserContext';
+import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
+
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
@@ -13,14 +15,27 @@ const App = () => {
       <UserProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </Router>
       </UserProvider>
     </ThemeProvider>
-
   );
 };
 

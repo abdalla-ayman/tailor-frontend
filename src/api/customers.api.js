@@ -41,26 +41,30 @@ export const deleteCustomer = async (id) => {
   }
 };
 
-export const importCustomers = async (fileData) => {
+// Export Customers to Excel
+export const exportCustomersToExcel = async () => {
   try {
-    const response = await apiClient.post("/customers/import", fileData, {
-      headers: { "Content-Type": "multipart/form-data" },
+    const response = await apiClient.get("/customers/export", {
+      responseType: "blob", // Important for handling binary data (Excel file)
     });
-    return response.data;
+    return response;
   } catch (error) {
-    console.error("Error importing customers:", error);
+    console.error("Error exporting customers:", error);
     throw error;
   }
 };
 
-export const exportCustomers = async () => {
+// Import Customers from Excel
+export const importCustomersFromExcel = async (formData) => {
   try {
-    const response = await apiClient.get("/customers/export", {
-      responseType: "blob",
+    const response = await apiClient.post("/customers/import", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // Required for file uploads
+      },
     });
-    return response.data;
+    return response;
   } catch (error) {
-    console.error("Error exporting customers:", error);
+    console.error("Error importing customers:", error);
     throw error;
   }
 };

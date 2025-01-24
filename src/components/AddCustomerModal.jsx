@@ -15,7 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 const AddCustomerModal = ({ open, onClose, onSave }) => {
     const [newCustomer, setNewCustomer] = useState({
         name: '',
-        phone: '', // This will store comma-separated phone numbers
+        phone: [],
         residence: '',
         sizes: ''
     });
@@ -42,7 +42,7 @@ const AddCustomerModal = ({ open, onClose, onSave }) => {
         const formattedPhoneNumbers = newCustomer.phone
             .split(',')
             .map(num => num.trim())
-            .join(',');
+
 
         onSave({
             ...newCustomer,

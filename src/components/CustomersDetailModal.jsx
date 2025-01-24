@@ -26,6 +26,7 @@ const CustomerDetailModal = ({ open, onClose, customer, onDelete, onSave }) => {
     }, [open]);
 
     const handleChange = (e) => {
+        console.log(customer, customerData)
         setCustomerData({
             ...customerData,
             [e.target.name]: e.target.value
@@ -33,7 +34,8 @@ const CustomerDetailModal = ({ open, onClose, customer, onDelete, onSave }) => {
     };
 
     const handleSave = () => {
-        onSave(customerData);
+        const { _id, ...customerDataWithoutId } = customerData;
+        onSave(customer._id, customerDataWithoutId);
         setIsEditing(false);
     };
 
@@ -93,7 +95,7 @@ const CustomerDetailModal = ({ open, onClose, customer, onDelete, onSave }) => {
                                     </IconButton>
                                     <IconButton
                                         color="error"
-                                        onClick={() => onDelete(customerData.id)}
+                                        onClick={() => onDelete(customer._id)}
                                         size="small"
                                     >
                                         <DeleteIcon fontSize="small" />
@@ -130,7 +132,7 @@ const CustomerDetailModal = ({ open, onClose, customer, onDelete, onSave }) => {
                         <TextField
                             label="المعرف"
                             name="id"
-                            value={customerData.id}
+                            value={customer._id}
                             disabled
                             fullWidth
                             size="small"
