@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Create an Axios instance
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000/api", // Replace with your API base URL
+  baseURL: "https://tailor-backend-1.onrender.com/api", // Replace with your API base URL
   headers: {
     "Content-Type": "application/json",
   },
