@@ -66,6 +66,7 @@ const UsersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, setMe
 
 
     const searchFields = [
+        { value: '_id', label: 'الرقم المعرف' },
         { value: 'name', label: 'الاسم' },
         { value: 'username', label: 'اسم المستخدم' },
     ];

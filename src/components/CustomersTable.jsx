@@ -54,6 +54,7 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
     }, [page, rowsPerPage, searchField, searchQuery, refreshTrigger, setLoading]);
 
     const searchFields = [
+        { value: '_id', label: 'الرقم المعرف' },
         { value: 'name', label: 'الاسم' },
         { value: 'phone', label: 'رقم الهاتف' },
         { value: 'residence', label: 'مكان الإقامة' },
