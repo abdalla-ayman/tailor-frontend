@@ -10,10 +10,13 @@ import {
     Divider,
     FormControlLabel,
     Switch,
-    FormHelperText
+    FormHelperText,
+    InputAdornment
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const AddUserModal = ({ open, onClose, onSave }) => {
     const [newUser, setNewUser] = useState({
@@ -28,6 +31,24 @@ const AddUserModal = ({ open, onClose, onSave }) => {
         name: '',
         password: ''
     });
+
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Reset form state when modal is closed
+    const handleClose = () => {
+        setNewUser({
+            username: '',
+            name: '',
+            password: '',
+            isSuperAdmin: false
+        });
+        setErrors({
+            username: '',
+            name: '',
+            password: ''
+        });
+        onClose();
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -78,10 +99,12 @@ const AddUserModal = ({ open, onClose, onSave }) => {
     const handleSave = async () => {
         if (!validateForm()) return;
 
-
         await onSave(newUser);
-        onClose();
+        handleClose(); // Reset form and close modal
+    };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword((prev) => !prev);
     };
 
     const modalStyle = {
@@ -100,7 +123,7 @@ const AddUserModal = ({ open, onClose, onSave }) => {
     };
 
     return (
-        <Modal open={open} onClose={onClose}>
+        <Modal open={open} onClose={handleClose}>
             <Box sx={modalStyle}>
                 <Paper
                     elevation={0}
@@ -133,7 +156,7 @@ const AddUserModal = ({ open, onClose, onSave }) => {
                                 <SaveIcon fontSize="small" />
                             </IconButton>
                             <IconButton
-                                onClick={onClose}
+                                onClick={handleClose}
                                 size="small"
                             >
                                 <CloseIcon fontSize="small" />
@@ -178,7 +201,7 @@ const AddUserModal = ({ open, onClose, onSave }) => {
                         <TextField
                             label="كلمة المرور"
                             name="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             value={newUser.password}
                             onChange={handleChange}
                             fullWidth
@@ -187,9 +210,16 @@ const AddUserModal = ({ open, onClose, onSave }) => {
                             helperText={errors.password}
                             InputProps={{
                                 sx: { textAlign: 'right' },
-                                inputProps: {
-                                    minLength: 6 // Minimum length constraint
-                                }
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={togglePasswordVisibility}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
                             }}
                         />
                         {/* Switch for Super Admin */}

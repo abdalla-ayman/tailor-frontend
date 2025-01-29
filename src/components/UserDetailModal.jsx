@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Modal,
     Box,
@@ -22,6 +22,15 @@ const UserDetailModal = ({ open, onClose, user, onDelete, onSave }) => {
         username: '',
         password: ''
     });
+
+    useEffect(() => {
+        if (open) {
+            setUserData(user);
+        } else {
+            setIsEditing(false);
+        }
+    }, [open, user]);
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;

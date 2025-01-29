@@ -22,20 +22,24 @@ const AddCustomerModal = ({ open, onClose, onSave }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
         if (name === 'phone') {
-            // Ensure only numbers and commas are allowed
+            // Allow only numbers and commas
             const sanitizedValue = value.replace(/[^0-9,]/g, '');
-            setNewCustomer({
-                ...newCustomer,
-                [name]: sanitizedValue
-            });
+            setNewCustomer(prev => ({ ...prev, [name]: sanitizedValue }));
+        } else if ([
+            'length', 'shouldersWidth', 'sleeveLength', 'upperSleeveWidth',
+            'lowerSleeveWidth', 'upperSides', 'lowerSides', 'pantsLength',
+            'pantsWidth'
+        ].includes(name)) {
+            // Allow only numbers and decimals
+            const sanitizedValue = value.replace(/[^0-9.]/g, '');
+            setNewCustomer(prev => ({ ...prev, [name]: sanitizedValue }));
         } else {
-            setNewCustomer({
-                ...newCustomer,
-                [name]: value
-            });
+            setNewCustomer(prev => ({ ...prev, [name]: value }));
         }
     };
+
 
     const handleSave = () => {
         // Split the phone numbers by comma, trim any spaces, and join them back as a comma-separated string
@@ -155,10 +159,119 @@ const AddCustomerModal = ({ open, onClose, onSave }) => {
                             }}
                         />
                         <TextField
-                            label="المقاسات"
-                            name="sizes"
-                            value={newCustomer.sizes}
+                            label="الطول"
+                            name="length"
+                            value={newCustomer.length}
                             onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="عرض الكتفين"
+                            name="shouldersWidth"
+                            value={newCustomer.shouldersWidth}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="طول الكم"
+                            name="sleeveLength"
+                            value={newCustomer.sleeveLength}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="عرض الكم العلوي"
+                            name="upperSleeveWidth"
+                            value={newCustomer.upperSleeveWidth}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="عرض الكم السفلي"
+                            name="lowerSleeveWidth"
+                            value={newCustomer.lowerSleeveWidth}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="عرض الجوانب العلوية"
+                            name="upperSides"
+                            value={newCustomer.upperSides}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="عرض الجوانب السفلية"
+                            name="lowerSides"
+                            value={newCustomer.lowerSides}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="طول البنطلون"
+                            name="pantsLength"
+                            value={newCustomer.pantsLength}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="عرض البنطلون"
+                            name="pantsWidth"
+                            value={newCustomer.pantsWidth}
+                            onChange={handleChange}
+
+                            fullWidth
+                            size="small"
+                            InputProps={{
+                                sx: { textAlign: 'right' }
+                            }}
+                        />
+                        <TextField
+                            label="ملاحظات"
+                            name="notes"
+                            value={newCustomer.notes}
+                            onChange={handleChange}
+
                             multiline
                             rows={3}
                             fullWidth
