@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Paper,
@@ -19,19 +20,19 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
-import { getCustomers, exportCustomersToExcel, importCustomersFromExcel } from '../api/customers.api';
+import { getCustomers, exportCustomersToExcel } from '../api/customers.api';
 import { useUser } from '../contexts/UserContext';
 
-const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, setMessage }) => {
-    const [searchField, setSearchField] = useState('name');
+const CustomersTable = ({ onAddNew, refreshTrigger, setLoading, onError, onSuccess }) => {
+    const [searchField, setSearchField] = useState('_id');
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [customers, setCustomers] = useState([]);
     const [totalCustomers, setTotalCustomers] = useState(0);
     const [isExporting, setIsExporting] = useState(false);
-    const [isImporting, setIsImporting] = useState(false);
     const { user } = useUser();
+    const navigate = useNavigate();
 
     useEffect(() => {
         try {
@@ -47,7 +48,7 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
             });
         } catch (error) {
             console.error("Error fetching customers:", error);
-            setMessage({ type: 'error', text: 'حدث خطأ أثناء جلب البيانات' });
+            onError('حدث خطأ أثناء جلب البيانات');
         } finally {
             setLoading(false);
         }
@@ -89,39 +90,18 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
             document.body.appendChild(link);
             link.click();
             link.remove();
-            setMessage({ type: 'success', text: 'تم تصدير البيانات بنجاح' });
+            onSuccess('تم تصدير البيانات بنجاح');
         } catch (error) {
             console.error("Error exporting customers:", error);
-            setMessage({ type: 'error', text: 'فشل تصدير البيانات' });
+            onError('فشل تصدير البيانات');
         } finally {
             setIsExporting(false);
         }
     };
 
-    // Handle Import from Excel
-    const handleImport = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        try {
-            setIsImporting(true);
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await importCustomersFromExcel(formData);
-            setMessage({ type: 'success', text: `تم استيراد ${response.data.imported} عميل بنجاح` });
-            setRefreshTrigger((prev) => prev + 1); // Refresh the table
-        } catch (error) {
-            console.error("Error importing customers:", error);
-            if (error.response?.data?.errors) {
-                const errors = error.response.data.errors.map((err) => `الصف ${err.row}: ${err.error}`).join('\n');
-                setMessage({ type: 'error', text: `خطأ في الاستيراد:\n${errors}` });
-            } else {
-                setMessage({ type: 'error', text: 'فشل استيراد البيانات' });
-            }
-        } finally {
-            setIsImporting(false);
-        }
+    // Replace the "More" button with a link to the details page
+    const handleViewDetails = (customerId) => {
+        navigate(`/customers/${customerId}`);
     };
 
     return (
@@ -150,22 +130,7 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
                             >
                                 {isExporting ? <CircularProgress size={20} /> : 'تصدير إلى Excel'}
                             </Button>
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                component="label"
-                                startIcon={<ImportExportIcon />}
-                                size="small"
-                                disabled={isImporting}
-                            >
-                                {isImporting ? <CircularProgress size={20} /> : 'استيراد من Excel'}
-                                <input
-                                    type="file"
-                                    hidden
-                                    accept=".xlsx, .xls"
-                                    onChange={handleImport}
-                                />
-                            </Button>
+
                         </>)
                 }
 
@@ -234,7 +199,7 @@ const CustomersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, s
                                     <Button
                                         variant="contained"
                                         size="small"
-                                        onClick={() => onViewDetails(customer)}
+                                        onClick={() => handleViewDetails(customer._id)}
                                         sx={{ minWidth: 'auto', whiteSpace: 'nowrap' }}
                                     >
                                         المزيد

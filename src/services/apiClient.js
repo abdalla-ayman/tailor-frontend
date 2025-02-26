@@ -3,9 +3,10 @@ import axios from "axios";
 
 // live "https://tailor-backend-1.onrender.com/api"
 //dev "http://localhost:3000/api"
+//talab server "http://107.191.46.100"
 // Create an Axios instance
 const apiClient = axios.create({
-  baseURL: "https://tailor-backend-1.onrender.com/api", // Replace with your API base URL
+  baseURL: "https://107.191.46.100/api", // Replace with your API base URL
   headers: {
     "Content-Type": "application/json",
   },

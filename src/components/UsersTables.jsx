@@ -23,8 +23,8 @@ import { getAccounts } from '../api/users.api';
 import { useUser } from '../contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
 
-const UsersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, setMessage }) => {
-    const [searchField, setSearchField] = useState('name');
+const UsersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, onError, onSuccess }) => {
+    const [searchField, setSearchField] = useState('_id');
     const [searchQuery, setSearchQuery] = useState('');
     const [isSuperAdminFilter, setIsSuperAdminFilter] = useState('all'); // 'all', 'true', 'false'
     const [page, setPage] = useState(0);
@@ -49,14 +49,14 @@ const UsersTable = ({ onViewDetails, onAddNew, refreshTrigger, setLoading, setMe
                 setTotalUsers(data.totalAccounts);
             } catch (error) {
                 console.error("Error fetching users:", error);
-                setMessage({ type: 'error', text: 'حدث خطأ أثناء جلب البيانات' });
+                onError('حدث خطأ أثناء جلب البيانات');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchUsers();
-    }, [page, rowsPerPage, searchField, searchQuery, isSuperAdminFilter, refreshTrigger, setLoading, setMessage]);
+    }, [page, rowsPerPage, searchField, searchQuery, isSuperAdminFilter, refreshTrigger, setLoading, onError]);
 
     useEffect(() => {
         if (!user?.isSuperAdmin) {

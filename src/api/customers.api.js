@@ -11,6 +11,15 @@ export const getCustomers = async (params) => {
   }
 };
 
+export const getCustomerById = async (id) => {
+  try {
+    const response = await apiClient.get("/customers/" + id);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    throw error;
+  }
+};
 export const createCustomer = async (customerData) => {
   try {
     const response = await apiClient.post("/customers", customerData);
@@ -50,21 +59,6 @@ export const exportCustomersToExcel = async () => {
     return response;
   } catch (error) {
     console.error("Error exporting customers:", error);
-    throw error;
-  }
-};
-
-// Import Customers from Excel
-export const importCustomersFromExcel = async (formData) => {
-  try {
-    const response = await apiClient.post("/customers/import", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // Required for file uploads
-      },
-    });
-    return response;
-  } catch (error) {
-    console.error("Error importing customers:", error);
     throw error;
   }
 };
